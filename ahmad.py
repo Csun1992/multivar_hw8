@@ -42,20 +42,33 @@ sig1 = 0.99*np.eye(dataDim) + 0.01*np.ones(dataDim, dataDim)
 sig2 = 0.95*np.eye(dataDim) + 0.05*np.ones(dataDim, dataDim)
 
 testStats = []
-for i in range(100):
+for i in range(rep):
     sample1 = np.random.multivariate_normal(mean=meanVec, cov=sig1, size=sampleSize)
     sample2 = np.random.multivariate_normal(mean=meanVec, cov=sig2, size=sampleSize)
-    testStats.append(ahmadStats(sample1, sample2))
+    sampleCov1 = np.cov(np.transpose(sample1)) 
+    sampleCov2 = np.cov(np.transpose(sample2)) 
+    M = sampleCov1 - sampleCov2
+    Fq, *others = np.linalg.svd(M, full_matrices=False)
+    reduced1 = Fq.T*sample1
+    reduced2 = Fq.T*sample2
+    testStats.append(ahmadStats(reduced1, reduced2))
 
 testStats.sort()
 cv = np.percentile(testStats, 95)
 
-
+power = 0
+for i in range(rep):
+    sample1 = np.random.multivariate_normal(mean=meanVec, cov=sig1, size=sampleSize)
+    sample2 = np.random.multivariate_normal(mean=meanVec, cov=sig2, size=sampleSize)
+    sampleCov1 = np.cov(np.transpose(sample1)) 
+    sampleCov2 = np.cov(np.transpose(sample2)) 
+    M = sampleCov1 - sampleCov2
+    Fq, *others = np.linalg.svd(M, full_matrices=False)
+    reduced1 = Fq.T*sample1
+    reduced2 = Fq.T*sample2
+    stats = ahmadStats(reduced1, reduced2)
+    power = (power + (stats>=cv))/rep
     
-sampleCov1 = np.cov(np.transpose(sample1)) 
-sampleCov2 = np.cov(np.transpose(sample2)) 
-M = sampleCov1 - sampleCov2
-Fq, *others = np.linalg.svd(M, full_matrices=False)
 
 
     
